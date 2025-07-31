@@ -4,7 +4,7 @@
     <el-card id="search">
       <el-row>
         <el-col :span="20">
-          <el-input v-model="searchModel.userName" placeholder="用户名" clearable></el-input>
+          <el-input v-model="searchModel.username" placeholder="用户名" clearable></el-input>
           <el-input v-model="searchModel.phone" placeholder="手机号" clearable></el-input>
           <el-button type="primary" round icon="el-icon-search" @click="getUserList">搜索</el-button>
         </el-col>
@@ -74,7 +74,15 @@
           <el-input v-model="userForm.email"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="userForm.password" type="password"></el-input>
+          <el-input
+            :type="showPassword ? 'text' : 'password'"
+            v-model="userForm.password"
+            placeholder="请输入密码"
+          >
+            <template #append>
+              <el-button @click="togglePasswordVisibility" icon="el-icon-view" size="mini"></el-button>
+            </template>
+          </el-input>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-switch
@@ -138,14 +146,44 @@ export default {
       this.userForm = {}
     },
 
+    // 提交表单数据
     submitUser() {
+      debugger;
+      // 调用后台接口
       userApi.addUser(this.userForm).then(res => {
+        if (res.data.code !== 20000){
+          this.$message.error(res.data.msg);
+        }
+        // 提交成功后，刷新用户列表
         this.getUserList();
-      })
-    }
+        // 关闭表单对话框
+        this.dialogFormVisible = false;
+        // 清空表单数据
+        this.clearUserForm();
+      }).catch(error => {
+        // 错误处理：判断错误类型并获取错误信息
+        let errorMsg = '提交失败，请稍后重试'; // 默认错误信息
+
+        if (error.response) {
+          // 后端返回的错误信息
+          errorMsg = error.response.data?.msg || error.response.data?.message || errorMsg;
+        } else if (error.message) {
+          // 网络错误或其他错误信息
+          errorMsg = error.message;
+        }
+
+        // 显示错误信息
+        this.$message.error(errorMsg);
+      });
+    },
+    // 切换密码显示/隐藏
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
   },
   data() {
     return {
+      showPassword: false, // 控制密码是否显示
       formLabelWidth: '120px',
       // 对话框标题：动态
       dialogTitle: '',
@@ -160,15 +198,38 @@ export default {
       },
       userForm: {},
       userList: [],
+      // 校验规则
       rules: {
         username: [
           {required: true, message: '请输入名称', trigger: 'blur'},
           {min: 2, max: 10, message: '长度在 2 到 10个字符', trigger: 'blur'}
         ],
         phone: [
-          {required: true, message: '请输入手机号', trigger: 'blur'},
-          {min: 2, max: 10, message: '长度在 2 到 10个字符', trigger: 'blur'}
+          { required: true, message: '请输入手机号', trigger: 'blur' },
+          {
+            pattern: /^(13[0-9]|14[5-9]|15[0-3]|15[5-9]|16[6]|17[0-8]|18[0-9]|19[8-9])\d{8}$/,
+            message: '请输入正确的手机号格式',
+            trigger: 'blur'
+          }
         ],
+        email: [
+          { required: true, message: "请输入邮箱地址", trigger: "blur" },
+          {
+            type: "email",
+            message: "请输入正确的邮箱地址",
+            trigger: "blur",
+          },
+        ],
+        password: [
+          { required: true, message: "请输入密码", trigger: "blur" },
+          { min: 8, max: 12, message: "密码长度在 8 到 12 位之间的字符", trigger: "blur" },
+          {
+            pattern: /^[^\u4e00-\u9fa5]+$/,
+            message: "密码不能包含中文字符",
+            trigger: "blur",
+          },
+        ]
+
       }
     }
   },

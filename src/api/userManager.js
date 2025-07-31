@@ -19,7 +19,7 @@ export default {
     return request({
       url: '/user/add',
       method: 'post',
-      params: {
+      data: {
         username: userForm.username,
         phone: userForm.phone,
         password: userForm.password,
