@@ -63,7 +63,7 @@
     </el-pagination>
 
     <el-dialog @close="clearUserForm" :title="dialogTitle" :visible.sync="dialogFormVisible">
-      <el-form :model="userForm" :rules="rules" label-width="100px" class="demo-ruleForm">
+      <el-form :model="userForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
         <el-form-item label="名称" prop="username">
           <el-input v-model="userForm.username"></el-input>
         </el-form-item>
@@ -101,7 +101,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="clearUserForm">取 消</el-button>
-        <el-button type="primary" @click="submitUser = false">确 定</el-button>
+        <el-button type="primary" @click="submitForm">确 定</el-button>
       </div>
     </el-dialog>
 
@@ -144,42 +144,52 @@ export default {
     clearUserForm() {
       this.dialogFormVisible = false;
       this.userForm = {}
-    },
-
-    // 提交表单数据
-    submitUser() {
-      debugger;
-      // 调用后台接口
-      userApi.addUser(this.userForm).then(res => {
-        if (res.data.code !== 20000){
-          this.$message.error(res.data.msg);
-        }
-        // 提交成功后，刷新用户列表
-        this.getUserList();
-        // 关闭表单对话框
-        this.dialogFormVisible = false;
-        // 清空表单数据
-        this.clearUserForm();
-      }).catch(error => {
-        // 错误处理：判断错误类型并获取错误信息
-        let errorMsg = '提交失败，请稍后重试'; // 默认错误信息
-
-        if (error.response) {
-          // 后端返回的错误信息
-          errorMsg = error.response.data?.msg || error.response.data?.message || errorMsg;
-        } else if (error.message) {
-          // 网络错误或其他错误信息
-          errorMsg = error.message;
-        }
-
-        // 显示错误信息
-        this.$message.error(errorMsg);
-      });
+      // todo 清除校验
+      this.$refs.ruleForm.clearValidate()
     },
     // 切换密码显示/隐藏
     togglePasswordVisibility() {
       this.showPassword = !this.showPassword;
     },
+
+    // 提交表单数据
+    submitForm() {
+      if (this.loading) return; // 防重复点击
+
+      this.$refs.ruleForm.validate(valid => {
+        if (!valid) return;
+
+        this.loading = true; // 开启加载状态
+
+        userApi.addUser(this.userForm)
+          .then(response => {
+              this.$notify({
+                title: '成功',
+                message: response.data.msg || '操作成功',
+                type: 'success'
+              });
+              this.dialogFormVisible = false;
+              this.getUserList();
+          })
+          .catch(error => {
+            const errorMsg =
+              error?.response?.data?.msg ||
+              error?.message ||
+              '提交异常，请稍后重试';
+
+            this.$notify.error({
+              title: '系统错误',
+              message: errorMsg
+            });
+          })
+          .finally(() => {
+            this.loading = false; // 请求结束，解锁按钮
+          });
+      });
+    }
+    ,
+
+
   },
   data() {
     return {
@@ -205,7 +215,7 @@ export default {
           {min: 2, max: 10, message: '长度在 2 到 10个字符', trigger: 'blur'}
         ],
         phone: [
-          { required: true, message: '请输入手机号', trigger: 'blur' },
+          {required: true, message: '请输入手机号', trigger: 'blur'},
           {
             pattern: /^(13[0-9]|14[5-9]|15[0-3]|15[5-9]|16[6]|17[0-8]|18[0-9]|19[8-9])\d{8}$/,
             message: '请输入正确的手机号格式',
@@ -213,7 +223,7 @@ export default {
           }
         ],
         email: [
-          { required: true, message: "请输入邮箱地址", trigger: "blur" },
+          {required: true, message: "请输入邮箱地址", trigger: "blur"},
           {
             type: "email",
             message: "请输入正确的邮箱地址",
@@ -221,8 +231,8 @@ export default {
           },
         ],
         password: [
-          { required: true, message: "请输入密码", trigger: "blur" },
-          { min: 8, max: 12, message: "密码长度在 8 到 12 位之间的字符", trigger: "blur" },
+          {required: true, message: "请输入密码", trigger: "blur"},
+          {min: 8, max: 12, message: "密码长度在 8 到 12 位之间的字符", trigger: "blur"},
           {
             pattern: /^[^\u4e00-\u9fa5]+$/,
             message: "密码不能包含中文字符",

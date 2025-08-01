@@ -15,18 +15,11 @@ export default {
     });
   },
 
-  addUser(userForm) {
+  addUser(user) {
     return request({
       url: '/user/add',
       method: 'post',
-      data: {
-        username: userForm.username,
-        phone: userForm.phone,
-        password: userForm.password,
-        email: userForm.email,
-        sex:userForm.sex,
-        status: userForm.status
-      }
+      data: user
     });
   }
 
