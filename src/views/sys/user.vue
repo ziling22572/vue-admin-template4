@@ -48,6 +48,19 @@
         <el-table-column
           prop="sex"
           label="性别">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.sex===1">男</el-tag>
+            <el-tag v-if="scope.row.sex===2" type="info">女</el-tag>
+            <el-tag v-if="scope.row.sex===3" type="danger">其他</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="status"
+          label="状态">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.status===1">正常</el-tag>
+            <el-tag v-else type="danger">禁用</el-tag>
+          </template>
         </el-table-column>
       </el-table>
     </el-card>
@@ -115,7 +128,7 @@ import userApi from '@/api/userManager'
 
 export default {
   methods: {
-    tableRowClassName({row, rowIndex}) {
+    tableRowClassName({rowIndex}) {
       if (rowIndex === 1) {
         return 'warning-row';
       } else if (rowIndex === 3) {
@@ -152,42 +165,39 @@ export default {
       this.showPassword = !this.showPassword;
     },
 
-    // 提交表单数据
     submitForm() {
-      if (this.loading) return; // 防重复点击
+      if (this.loading) return; // 防止重复点击
 
+      // 验证表单
       this.$refs.ruleForm.validate(valid => {
-        if (!valid) return;
-
+        if (!valid) return; // 如果表单无效，返回
         this.loading = true; // 开启加载状态
-
-        userApi.addUser(this.userForm)
-          .then(response => {
-              this.$notify({
-                title: '成功',
-                message: response.data.msg || '操作成功',
-                type: 'success'
-              });
-              this.dialogFormVisible = false;
-              this.getUserList();
-          })
-          .catch(error => {
-            const errorMsg =
-              error?.response?.data?.msg ||
-              error?.message ||
-              '提交异常，请稍后重试';
-
-            this.$notify.error({
-              title: '系统错误',
-              message: errorMsg
-            });
-          })
-          .finally(() => {
-            this.loading = false; // 请求结束，解锁按钮
-          });
+        this.addUserRequest()
+            .then(this.handleSuccessResponse)
+            .finally(this.handleFinally);
       });
-    }
-    ,
+    },
+
+// 添加用户请求
+    addUserRequest() {
+      return userApi.addUser(this.userForm);
+    },
+
+// 成功响应处理
+    handleSuccessResponse(response) {
+      if (response.code === 20000) {
+        this.$message({
+          message: response.message || '操作成功',
+          type: 'success'
+        });
+        this.dialogFormVisible = false;
+        this.getUserList();
+      }
+    },
+// 最终处理（无论成功或失败都会执行）
+    handleFinally() {
+      this.loading = false; // 结束加载状态
+    },
 
 
   },
@@ -206,13 +216,16 @@ export default {
         username: '',
         phone: '',
       },
-      userForm: {},
+      userForm: { status: 1},
       userList: [],
       // 校验规则
       rules: {
         username: [
           {required: true, message: '请输入名称', trigger: 'blur'},
           {min: 2, max: 10, message: '长度在 2 到 10个字符', trigger: 'blur'}
+        ],
+        sex: [
+          {required: true, message: '请选择性别', trigger: 'blur'}
         ],
         phone: [
           {required: true, message: '请输入手机号', trigger: 'blur'},
