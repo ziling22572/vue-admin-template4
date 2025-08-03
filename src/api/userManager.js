@@ -17,10 +17,22 @@ export default {
 
   addUser(user) {
     return request({
-      url: '/user/add',
+      url: '/user/submit',
       method: 'post',
       data: user
     });
-  }
+  },
+  getUserById(id) {
+    return request({
+      url: `/user/${id}`,
+      method: 'get'
+    });
+  },
 
+  deleteUser(id) {
+    return request({
+      url: `/user/removeById?id=${id}`,  // 使用查询参数传递 ID
+      method: 'delete'                   // 使用 DELETE 方法
+    });
+  }
 }

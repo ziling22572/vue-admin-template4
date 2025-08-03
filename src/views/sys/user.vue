@@ -9,7 +9,7 @@
           <el-button type="primary" round icon="el-icon-search" @click="getUserList">搜索</el-button>
         </el-col>
         <el-col :span="4" align="right">
-          <el-button type="primary" icon="el-icon-plus" circle @click="openEditForm">新增</el-button>
+          <el-button type="primary" icon="el-icon-plus" circle @click="openEditForm(null)">新增</el-button>
           <!--      <el-button type="primary" icon="el-icon-edit" circle>编辑</el-button>-->
         </el-col>
       </el-row>
@@ -62,6 +62,13 @@
             <el-tag v-else type="danger">禁用</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button type="primary" icon="el-icon-edit" circle size="mini" @click="openEditForm(scope.row.id)"></el-button>
+            <el-button type="danger" icon="el-icon-delete" circle size="mini"  @click="deleteUserForm(scope.row.id)"></el-button>
+          </template>
+        </el-table-column>
+
       </el-table>
     </el-card>
     <!--    分页组件-->
@@ -86,7 +93,7 @@
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="userForm.email"></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password">
+        <el-form-item label="密码" prop="password" v-if="userForm.id==null||false">
           <el-input
             :type="showPassword ? 'text' : 'password'"
             v-model="userForm.password"
@@ -126,6 +133,7 @@
 //todo @ 代表src目录
 import userApi from '@/api/userManager'
 
+
 export default {
   methods: {
     tableRowClassName({rowIndex}) {
@@ -150,9 +158,30 @@ export default {
         this.total = res.data.total;
       })
     },
-    openEditForm() {
+
+    deleteUserForm(id){
+      userApi.deleteUser(id).then(response => {
+        if (response.code === 20000) {
+          this.$message({
+            message: '操作成功',
+            type: 'success'
+          });
+          this.getUserList();
+        }
+      })
+    },
+
+    openEditForm(id) {
       this.dialogFormVisible = true;
-      this.dialogTitle = '用户注册';
+      if (id==null){
+        this.dialogTitle = '用户注册';
+      }else {
+        this.dialogTitle = '用户修改';
+        // 通过 id获取用户信息
+        userApi.getUserById(id).then(res => {
+          this.userForm = res.data
+        })
+      }
     },
     clearUserForm() {
       this.dialogFormVisible = false;
@@ -167,7 +196,6 @@ export default {
 
     submitForm() {
       if (this.loading) return; // 防止重复点击
-
       // 验证表单
       this.$refs.ruleForm.validate(valid => {
         if (!valid) return; // 如果表单无效，返回
