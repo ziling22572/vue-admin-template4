@@ -82,6 +82,13 @@ export const constantRoutes = [
         component: () => import('@/views/sys/dept'),
         meta: {title: '部门管理', icon: 'form'}
       }
+      ,
+      {
+        path: 'menu',
+        name: 'menu',
+        component: () => import('@/views/sys/menu'),
+        meta: {title: '菜单管理', icon: 'form'}
+      }
     ]
   },
 

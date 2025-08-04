@@ -38,6 +38,7 @@
 import ScrollPane from './ScrollPane'
 import { generateTitle } from '@/utils/i18n'
 import path from 'path'
+import item from "@/layout/components/Sidebar/Item.vue";
 
 export default {
   components: { ScrollPane },
@@ -74,8 +75,31 @@ export default {
   mounted() {
     this.initTags()
     this.addTags()
+    this.tagViewCache()
   },
   methods: {
+    // todo 防止刷新丢失其它标签页
+    tagViewCache(){
+      window.addEventListener("beforeunload", () => {
+        let tabViews = this.visitedViews.map(item => {
+          return {
+            fullPath: item.fullPath,
+            hash: item.hash,
+            meta: {...item.name},
+            name: item.name,
+            params: {...item.params},
+            path: item.path,
+            query: {...item.query},
+            title: item.title
+          };
+        });
+        sessionStorage.setItem("tagsView", JSON.stringify(tabViews));
+      });
+      let oldViews = JSON.parse(sessionStorage.getItem('tagsView')) || [];
+      if (oldViews.length > 0) {
+        this.$store.state.tagsView.visitedViews = oldViews;
+      }
+    },
     generateTitle, // generateTitle by vue-i18n
     isActive(route) {
       return route.path === this.$route.path

@@ -51,8 +51,12 @@ export default {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
+      // todo 注销时删除所有标签,每次登录进入首页
       await this.$store.dispatch('user/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      await this.$store.dispatch('tagsView/delAllViews')
+      sessionStorage.removeItem("tabViews")
+      // this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      this.$router.push(`/login`)
     }
   }
 }

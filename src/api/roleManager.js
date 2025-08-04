@@ -2,37 +2,36 @@ import request from '@/utils/request'
 
 export default {
 
-  getUserList(searchModel) {
+  getRoleList(searchModel) {
     return request({
-      url: '/user/list',
+      url: '/role/list',
       method: 'get',
       params: {
         pageNo: searchModel.pageNo,
         pageSize: searchModel.pageSize,
-        username: searchModel.username,
-        phone: searchModel.phone,
-        status: searchModel.status,
+        name: searchModel.name
       }
     });
   },
 
-  submit(user) {
+  submit(role) {
     return request({
-      url: '/user/submit',
+      url: '/role/submit',
       method: 'post',
-      data: user
+      data: role
     });
   },
-  getUserById(id) {
+
+  getRoleById(id) {
     return request({
-      url: `/user/${id}`,
+      url: `/role/${id}`,
       method: 'get'
     });
   },
 
-  deleteUser(id) {
+  deleteRole(id) {
     return request({
-      url: `/user/removeById?id=${id}`,  // 使用查询参数传递 ID
+      url: `/role/removeById?id=${id}`,  // 使用查询参数传递 ID
       method: 'delete'                   // 使用 DELETE 方法
     });
   }
