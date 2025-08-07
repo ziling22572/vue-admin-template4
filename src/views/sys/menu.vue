@@ -22,16 +22,17 @@
         <el-table-column prop="path" label="路径"/>
         <el-table-column prop="icon" label="图标"/>
         <el-table-column prop="orderNum" label="排序"/>
-<!--        <el-table-column prop="createdAt" label="创建时间"/>-->
+        <!--        <el-table-column prop="createdAt" label="创建时间"/>-->
         <el-table-column label="操作">
           <template slot-scope="scope">
-          <div class="action-buttons">
-            <el-button size="mini" type="info" @click="openDetailForm(scope.row.id)">查看</el-button>
-            <el-button size="mini" type="primary" @click="openEditForm(scope.row.id)">编辑</el-button>
-            <el-button size="mini" type="warning" @click="handleDelete(scope.row)">删除</el-button>
-            <el-button size="mini" type="danger" @click="addChildren(scope.row.parentId)">新增子项</el-button>
-          </div>
-            </template>/
+            <div class="action-buttons">
+              <el-button size="mini" type="info" @click="openDetailForm(scope.row.id)">查看</el-button>
+              <el-button size="mini" type="primary" @click="openEditForm(scope.row.id)">编辑</el-button>
+              <el-button size="mini" type="warning" @click="handleDelete(scope.row)">删除</el-button>
+              <el-button size="mini" type="danger" @click="addChildren(scope.row.parentId)">新增子项</el-button>
+            </div>
+          </template>
+          /
         </el-table-column>
       </el-table>
     </el-card>
@@ -85,11 +86,11 @@ export default {
       dialogFormVisible: false,
       menuList: [],
       menuForm: {
-        name:'',
-        menuCode:'',
-        parentId:'',
-        path:'',
-        icon:''
+        name: '',
+        menuCode: '',
+        parentId: 0,
+        path: '',
+        icon: ''
       },
       searchModel: {
         name: '',
@@ -131,11 +132,16 @@ export default {
       }
     },
     getMenuList() {
-      menuApi.getMenuListTree(this.searchModel).then(res => {
-        if (res.code === 20000) {
-          this.menuList = res.data
-        }
-      })
+      if (this.searchModel.name.length>0 || this.searchModel.menuCode.length>0) {
+        menuApi.getMenuListTree(this.searchModel).then(res => {
+          if (res.code === 20000) {
+            this.menuList = res.data
+          }
+        });
+      } else {
+        // 获取菜单树
+        this.loadMenuData()
+      }
     },
     openDetailForm(id) {
       this.dialogFormVisible = true;
