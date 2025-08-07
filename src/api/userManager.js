@@ -35,5 +35,11 @@ export default {
       url: `/user/removeById?id=${id}`,  // 使用查询参数传递 ID
       method: 'delete'                   // 使用 DELETE 方法
     });
+  },
+  getUserInfo() {
+    return request({
+      url: '/user/info',
+      method: 'get'
+    })
   }
 }

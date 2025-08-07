@@ -84,6 +84,19 @@
         <el-form-item label="角色编码" prop="roleCode">
           <el-input v-model="roleForm.roleCode"></el-input>
         </el-form-item>
+        <el-form-item label="权限设置" prop="menuIds" :label-width="formLabelWidth">
+          <el-tree
+            :data="menuList"
+            show-checkbox
+            :props="menuProps"
+            default-expand-all
+            style="width: 85%"
+            node-key="id"
+            ref="menuTreeRef"
+            v-model="roleForm.menuIds"
+          >
+          </el-tree>
+        </el-form-item>
 
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -99,6 +112,7 @@
 <script>
 //todo @ 代表src目录
 import roleApi from '@/api/roleManager'
+import menuApi from '@/api/menuManager'
 
 export default {
   methods: {
@@ -125,6 +139,13 @@ export default {
       })
     },
 
+    getMenuTree() {
+      menuApi.getMenuTree().then(res => {
+        this.menuList = res.data;
+      })
+    },
+
+
     deleteRoleForm(role) {
       this.$confirm(`此操作将删除角色${role.name}, 是否继续?`, '提示', {
         confirmButtonText: '确定',
@@ -148,6 +169,7 @@ export default {
       });
     },
     openEditForm(id) {
+      // this.getMenuTree();
       this.dialogFormVisible = true;
       if (id == null) {
         this.dialogTitle = '角色新增';
@@ -155,7 +177,10 @@ export default {
         this.dialogTitle = '角色修改';
         // 通过 id获取用户信息
         roleApi.getRoleById(id).then(res => {
+          // console.log('menuIds:', res.data.menuIds);
           this.roleForm = res.data
+          // 回显树形菜单列表
+            this.$refs.menuTreeRef.setCheckedKeys(res.data.menuIds);
         })
       }
     },
@@ -164,21 +189,28 @@ export default {
       this.roleForm = {}
       // todo 清除校验
       this.$refs.ruleForm.clearValidate()
+      // todo 清空树形菜单缓存选择
+      this.$refs.menuTreeRef.setCheckedKeys([])
     },
     submitForm() {
       if (this.loading) return; // 防止重复点击
       // 验证表单
       this.$refs.ruleForm.validate(valid => {
         if (!valid) return; // 如果表单无效，返回
+        // todo 通过引用获取选择的id集合
+        let checkIds = this.$refs.menuTreeRef.getCheckedKeys();
+        let leafCheckIds = this.$refs.menuTreeRef.getHalfCheckedKeys();
+        this.roleForm.menuIds = checkIds.concat(leafCheckIds);
+        // console.log( this.roleForm.menuIdList)
         this.loading = true; // 开启加载状态
-        this.addRoleRequest()
+        this.submitRoleRequest()
           .then(this.handleSuccessResponse)
           .finally(this.handleFinally);
       });
     },
 
 // 添加用户请求
-    addRoleRequest() {
+    submitRoleRequest() {
       return roleApi.submit(this.roleForm);
     },
 
@@ -202,6 +234,11 @@ export default {
   },
   data() {
     return {
+      menuList: [],
+      menuProps: {
+        children: 'children',
+        label: 'name'
+      },
       formLabelWidth: '120px',
       // 对话框标题：动态
       dialogTitle: '',
@@ -223,30 +260,21 @@ export default {
         ],
         description: [
           {required: true, message: '请输入名称', trigger: 'blur'},
-          {min: 2, max: 10, message: '长度在 2 到 10个字符', trigger: 'blur'}
+          {min: 2, max: 20, message: '长度在 2 到 20个字符', trigger: 'blur'}
         ],
         roleCode: [
-          { required: true, message: '请输入名称', trigger: 'blur' },
-          { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' },
-          { pattern: /^[A-Za-z]+$/, message: '只能输入大小写字母', trigger: 'blur' }
+          {required: true, message: '请输入名称', trigger: 'blur'},
+          {min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur'},
+          {pattern: /^[A-Za-z]+$/, message: '只能输入大小写字母', trigger: 'blur'}
         ]
-      },
-      // 下拉列表
-      sexOptions: [
-        {id: 1, name: '男'},
-        {id: 2, name: '女'},
-        {id: 3, name: '其他'}
-      ],
-      statusOptions: [
-        {id: 1, name: '正常'},
-        {id: 0, name: '禁用'}
-      ],
+      }
     }
   },
 
 // todo 使用钩子函数 初始化加载
   created() {
     this.getRoleList();
+    this.getMenuTree();
   }
 }
 </script>

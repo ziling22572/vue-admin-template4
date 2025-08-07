@@ -24,7 +24,7 @@ export default {
 
   getRoleById(id) {
     return request({
-      url: `/role/${id}`,
+      url: `/userRole/${id}`,
       method: 'get'
     });
   },
