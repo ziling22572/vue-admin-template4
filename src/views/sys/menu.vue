@@ -29,7 +29,7 @@
               <el-button size="mini" type="info" @click="openDetailForm(scope.row.id)">查看</el-button>
               <el-button size="mini" type="primary" @click="openEditForm(scope.row.id)">编辑</el-button>
               <el-button size="mini" type="warning" @click="handleDelete(scope.row)">删除</el-button>
-              <el-button size="mini" type="danger" @click="addChildren(scope.row.parentId)">新增子项</el-button>
+              <el-button size="mini" type="danger" @click="addChildren(scope.row.id)">新增子项</el-button>
             </div>
           </template>
           /
@@ -38,7 +38,7 @@
     </el-card>
 
     <el-dialog @close="clearMenuForm" :title="dialogTitle" :visible.sync="dialogFormVisible">
-      <el-form :model="menuForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+      <el-form :model="menuForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm"  :disabled="isDetail">
         <el-form-item label="父节点">
           <el-select v-model="menuForm.parentId" placeholder="请选择父级菜单" filterable clearable style="width: 100%">
             <el-option
@@ -64,7 +64,7 @@
           <el-input v-model="menuForm.icon"></el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
+      <div slot="footer" class="dialog-footer" v-if="!isDetail">
         <el-button @click="clearMenuForm">取 消</el-button>
         <el-button type="primary" @click="submitForm">确 定</el-button>
       </div>
@@ -80,6 +80,7 @@ import menuApi from '@/api/menuManager'
 export default {
   data() {
     return {
+      isDetail: false, // 是否是详情模式
       // 对话框标题：动态
       dialogTitle: '',
       // 是否可见
@@ -132,7 +133,7 @@ export default {
       }
     },
     getMenuList() {
-      if (this.searchModel.name.length>0 || this.searchModel.menuCode.length>0) {
+      if (this.searchModel.name.length > 0 || this.searchModel.menuCode.length > 0) {
         menuApi.getMenuListTree(this.searchModel).then(res => {
           if (res.code === 20000) {
             this.menuList = res.data
@@ -143,7 +144,9 @@ export default {
         this.loadMenuData()
       }
     },
+    // 详情界面 关闭操作按钮和页面只能查看
     openDetailForm(id) {
+      this.isDetail = true; // 详情模式
       this.dialogFormVisible = true;
       this.dialogTitle = '菜单详情';
       // 通过 id获取用户信息
@@ -153,16 +156,21 @@ export default {
       // 关闭其他按钮和页面只能查看
     },
     addChildren(parentId) {
-
+      this.isDetail = false; // 可编辑
+      this.dialogFormVisible = true;
+      this.dialogTitle = '菜单新增';
+      this.menuForm.parentId = parentId
     },
     clearMenuForm() {
       this.dialogFormVisible = false;
-      this.menuForm = {}
+      this.menuForm = {};
       // todo 清除校验
-      this.$refs.ruleForm.clearValidate()
+      this.$refs.ruleForm.clearValidate();
+      this.menuForm.parentId = '0';
     },
 
     openEditForm(id) {
+      this.isDetail = false;
       this.dialogFormVisible = true;
       if (id == null) {
         this.dialogTitle = '菜单新增';

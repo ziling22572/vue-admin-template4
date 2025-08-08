@@ -94,6 +94,7 @@
             node-key="id"
             ref="menuTreeRef"
             v-model="roleForm.menuIds"
+            @check-change="handleCheckChange"
           >
           </el-tree>
         </el-form-item>
@@ -116,6 +117,17 @@ import menuApi from '@/api/menuManager'
 
 export default {
   methods: {
+    handleCheckChange(data, checked) {
+      if (data.id === 1 && !checked) {
+        // 防止取消首页
+        this.$nextTick(() => {
+          const currentKeys = this.$refs.menuTreeRef.getCheckedKeys();
+          if (!currentKeys.includes(1)) {
+            this.$refs.menuTreeRef.setCheckedKeys([...currentKeys, 1]);
+          }
+        });
+      }
+    },
     tableRowClassName({rowIndex}) {
       if (rowIndex === 1) {
         return 'warning-row';
@@ -169,40 +181,48 @@ export default {
       });
     },
     openEditForm(id) {
-      // this.getMenuTree();
       this.dialogFormVisible = true;
       if (id == null) {
         this.dialogTitle = '角色新增';
+        // 新增时首页默认选中
+        this.$nextTick(() => {
+          this.$refs.menuTreeRef.setCheckedKeys([1]);
+        });
       } else {
         this.dialogTitle = '角色修改';
-        // 通过 id获取用户信息
         roleApi.getRoleById(id).then(res => {
-          // console.log('menuIds:', res.data.menuIds);
-          this.roleForm = res.data
-          // 回显树形菜单列表
-            this.$refs.menuTreeRef.setCheckedKeys(res.data.menuIds);
-        })
+          this.roleForm = res.data;
+          const keys = res.data.menuIds || [];
+          // 编辑时也保证首页存在
+          if (!keys.includes(1)) keys.push(1);
+          this.$nextTick(() => {
+            this.$refs.menuTreeRef.setCheckedKeys(keys);
+          });
+        });
       }
     },
+
     clearRoleForm() {
       this.dialogFormVisible = false;
-      this.roleForm = {}
-      // todo 清除校验
-      this.$refs.ruleForm.clearValidate()
-      // todo 清空树形菜单缓存选择
-      this.$refs.menuTreeRef.setCheckedKeys([])
+      this.roleForm = {};
+      this.$refs.ruleForm.clearValidate();
+      // 清空树但保留首页
+      this.$nextTick(() => {
+        this.$refs.menuTreeRef.setCheckedKeys([1]);
+      });
     },
+
     submitForm() {
-      if (this.loading) return; // 防止重复点击
-      // 验证表单
+      if (this.loading) return;
       this.$refs.ruleForm.validate(valid => {
-        if (!valid) return; // 如果表单无效，返回
-        // todo 通过引用获取选择的id集合
+        if (!valid) return;
+        // 获取所有勾选（含半选）
         let checkIds = this.$refs.menuTreeRef.getCheckedKeys();
-        let leafCheckIds = this.$refs.menuTreeRef.getHalfCheckedKeys();
-        this.roleForm.menuIds = checkIds.concat(leafCheckIds);
-        // console.log( this.roleForm.menuIdList)
-        this.loading = true; // 开启加载状态
+        let halfCheckIds = this.$refs.menuTreeRef.getHalfCheckedKeys();
+        // 提交前也确保首页 id=1 存在
+        if (!checkIds.includes(1)) checkIds.push(1);
+        this.roleForm.menuIds = Array.from(new Set([...checkIds, ...halfCheckIds]));
+        this.loading = true;
         this.submitRoleRequest()
           .then(this.handleSuccessResponse)
           .finally(this.handleFinally);
@@ -210,72 +230,76 @@ export default {
     },
 
 // 添加用户请求
-    submitRoleRequest() {
-      return roleApi.submit(this.roleForm);
-    },
+  submitRoleRequest() {
+    return roleApi.submit(this.roleForm);
+  },
 
 // 成功响应处理
-    handleSuccessResponse(response) {
-      if (response.code === 20000) {
-        this.$message({
-          message: response.message || '操作成功',
-          type: 'success'
-        });
-        this.dialogFormVisible = false;
-        this.getRoleList();
-      }
-    },
-// 最终处理（无论成功或失败都会执行）
-    handleFinally() {
-      this.loading = false; // 结束加载状态
-    },
-
-
-  },
-  data() {
-    return {
-      menuList: [],
-      menuProps: {
-        children: 'children',
-        label: 'name'
-      },
-      formLabelWidth: '120px',
-      // 对话框标题：动态
-      dialogTitle: '',
-      // 是否可见
-      dialogFormVisible: false,
-      total: 0,
-      searchModel: {
-        pageSize: 10,
-        pageNo: 1,
-        name: ''
-      },
-      roleForm: {},
-      roleList: [],
-      // 校验规则
-      rules: {
-        name: [
-          {required: true, message: '请输入名称', trigger: 'blur'},
-          {min: 2, max: 10, message: '长度在 2 到 10个字符', trigger: 'blur'}
-        ],
-        description: [
-          {required: true, message: '请输入名称', trigger: 'blur'},
-          {min: 2, max: 20, message: '长度在 2 到 20个字符', trigger: 'blur'}
-        ],
-        roleCode: [
-          {required: true, message: '请输入名称', trigger: 'blur'},
-          {min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur'},
-          {pattern: /^[A-Za-z]+$/, message: '只能输入大小写字母', trigger: 'blur'}
-        ]
-      }
+  handleSuccessResponse(response) {
+    if (response.code === 20000) {
+      this.$message({
+        message: response.message || '操作成功',
+        type: 'success'
+      });
+      this.dialogFormVisible = false;
+      this.getRoleList();
     }
   },
+// 最终处理（无论成功或失败都会执行）
+  handleFinally() {
+    this.loading = false; // 结束加载状态
+  },
+
+
+}
+,
+data()
+{
+  return {
+    menuList: [],
+    menuProps: {
+      children: 'children',
+      label: 'name'
+    },
+    formLabelWidth: '120px',
+    // 对话框标题：动态
+    dialogTitle: '',
+    // 是否可见
+    dialogFormVisible: false,
+    total: 0,
+    searchModel: {
+      pageSize: 10,
+      pageNo: 1,
+      name: ''
+    },
+    roleForm: {},
+    roleList: [],
+    // 校验规则
+    rules: {
+      name: [
+        {required: true, message: '请输入名称', trigger: 'blur'},
+        {min: 2, max: 10, message: '长度在 2 到 10个字符', trigger: 'blur'}
+      ],
+      description: [
+        {required: true, message: '请输入名称', trigger: 'blur'},
+        {min: 2, max: 20, message: '长度在 2 到 20个字符', trigger: 'blur'}
+      ],
+      roleCode: [
+        {required: true, message: '请输入名称', trigger: 'blur'},
+        {min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur'},
+        {pattern: /^[A-Za-z]+$/, message: '只能输入大小写字母', trigger: 'blur'}
+      ]
+    }
+  }
+}
+,
 
 // todo 使用钩子函数 初始化加载
-  created() {
-    this.getRoleList();
-    this.getMenuTree();
-  }
+created()
+{
+  this.getRoleList();
+  this.getMenuTree();
+}
 }
 </script>
 

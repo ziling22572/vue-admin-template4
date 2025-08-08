@@ -10,6 +10,7 @@ const service = axios.create({
   timeout: 5000 // request timeout
 })
 
+//  todo 请求拦截器
 // request interceptor
 service.interceptors.request.use(
   config => {
@@ -30,6 +31,7 @@ service.interceptors.request.use(
   }
 )
 
+// TODO 响应拦截器
 // response interceptor
 service.interceptors.response.use(
   /**
@@ -43,6 +45,12 @@ service.interceptors.response.use(
    * You can also judge the status by HTTP Status Code
    */
   response => {
+    // === 1. 检查后端是否返回了新的 token（拦截器续期用） ===
+    const newToken = response.headers['X-Token']
+    if (newToken) {
+      setToken(newToken) // 存到 cookie/localStorage
+    }
+
     const res = response.data
 
     // 登录过期处理

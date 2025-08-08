@@ -34,5 +34,11 @@ export default {
       url: `/role/removeById?id=${id}`,  // 使用查询参数传递 ID
       method: 'delete'                   // 使用 DELETE 方法
     });
-  }
+  },
+  getAllRole() {
+    return request({
+      url: '/role/all',
+      method: 'get'
+    });
+  },
 }

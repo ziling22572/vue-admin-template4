@@ -6,7 +6,7 @@
         <el-col :span="20">
           <el-input v-model="searchModel.username" placeholder="用户名" clearable></el-input>
           <el-input v-model="searchModel.phone" placeholder="手机号" clearable></el-input>
-          <el-select  v-model="searchModel.status"  placeholder="请选择状态" clearable>
+          <el-select v-model="searchModel.status" placeholder="请选择状态" clearable>
             <el-option
               v-for="item in statusOptions"
               :key="item.id"
@@ -101,16 +101,16 @@
 
     <el-dialog @close="clearUserForm" :title="dialogTitle" :visible.sync="dialogFormVisible">
       <el-form :model="userForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-        <el-form-item label="名称" prop="username">
+        <el-form-item label="名称">
           <el-input v-model="userForm.username"></el-input>
         </el-form-item>
-        <el-form-item label="手机号" prop="phone">
+        <el-form-item label="手机号" >
           <el-input v-model="userForm.phone"></el-input>
         </el-form-item>
-        <el-form-item label="邮箱" prop="email">
+        <el-form-item label="邮箱" >
           <el-input v-model="userForm.email"></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password" v-if="userForm.id==null||false">
+        <el-form-item label="密码" v-if="userForm.id==null||false">
           <el-input
             :type="showPassword ? 'text' : 'password'"
             v-model="userForm.password"
@@ -121,14 +121,14 @@
             </template>
           </el-input>
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item label="状态" >
           <el-switch
             v-model="userForm.status"
             :active-value="1"
             :inactive-value="0">
           </el-switch>
         </el-form-item>
-        <el-form-item label="性别" prop="sex">
+        <el-form-item label="性别" >
           <el-select v-model="userForm.sex" placeholder="请选择性别">
             <el-option
               v-for="item in sexOptions"
@@ -138,6 +138,13 @@
             </el-option>
           </el-select>
         </el-form-item>
+
+        <el-form-item label="角色权限" >
+          <el-checkbox-group v-model="userForm.roleIds">
+            <el-checkbox v-for="role in roleList" :label="role.id" :key="role.id">{{ role.name }}</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="clearUserForm">取 消</el-button>
@@ -152,6 +159,7 @@
 <script>
 //todo @ 代表src目录
 import userApi from '@/api/userManager'
+import roleApi from '@/api/roleManager'
 
 export default {
   methods: {
@@ -175,6 +183,12 @@ export default {
       userApi.getUserList(this.searchModel).then(res => {
         this.userList = res.data.rows;
         this.total = res.data.total;
+      })
+    },
+
+    getAllRole() {
+      roleApi.getAllRole().then(res => {
+        this.roleList = res.data;
       })
     },
 
@@ -214,7 +228,9 @@ export default {
     },
     clearUserForm() {
       this.dialogFormVisible = false;
-      this.userForm = {}
+      this.userForm = {
+        roleIds: []
+      }
       // todo 清除校验
       this.$refs.ruleForm.clearValidate()
     },
@@ -230,8 +246,8 @@ export default {
         if (!valid) return; // 如果表单无效，返回
         this.loading = true; // 开启加载状态
         this.addUserRequest()
-            .then(this.handleSuccessResponse)
-            .finally(this.handleFinally);
+          .then(this.handleSuccessResponse)
+          .finally(this.handleFinally);
       });
     },
 
@@ -254,12 +270,11 @@ export default {
 // 最终处理（无论成功或失败都会执行）
     handleFinally() {
       this.loading = false; // 结束加载状态
-    },
-
-
+    }
   },
   data() {
     return {
+      roleList: [],
       showPassword: false, // 控制密码是否显示
       formLabelWidth: '120px',
       // 对话框标题：动态
@@ -272,9 +287,12 @@ export default {
         pageNo: 1,
         username: '',
         phone: '',
-        status:null
+        status: null
       },
-      userForm: {status: 1},
+      userForm: {
+        status: 1,
+        roleIds: []
+      },
       userList: [],
       // 校验规则
       rules: {
@@ -313,13 +331,13 @@ export default {
       },
       // 下拉列表
       sexOptions: [
-        { id: 1, name: '男' },
-        { id: 2, name: '女' },
-        { id: 3, name: '其他' }
+        {id: 1, name: '男'},
+        {id: 2, name: '女'},
+        {id: 3, name: '其他'}
       ],
       statusOptions: [
-        { id: 1, name: '正常' },
-        { id: 0, name: '禁用' }
+        {id: 1, name: '正常'},
+        {id: 0, name: '禁用'}
       ],
     }
   },
@@ -327,6 +345,7 @@ export default {
 // todo 使用钩子函数 初始化加载
   created() {
     this.getUserList();
+    this.getAllRole();
   }
 }
 </script>
