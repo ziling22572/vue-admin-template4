@@ -259,7 +259,7 @@ data()
     menuList: [],
     menuProps: {
       children: 'children',
-      label: 'name'
+      label: 'title'
     },
     formLabelWidth: '120px',
     // 对话框标题：动态

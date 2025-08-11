@@ -4,8 +4,8 @@
     <el-card id="search">
       <el-row>
         <el-col :span="20">
-          <el-input v-model="searchModel.name" placeholder="菜单名称" clearable></el-input>
-          <el-input v-model="searchModel.menuCode" placeholder="菜单编码" clearable></el-input>
+          <el-input v-model="searchModel.title" placeholder="名称" clearable></el-input>
+          <el-input v-model="searchModel.name" placeholder="编码" clearable></el-input>
           <el-button type="primary" round icon="el-icon-search" @click="getMenuList">搜索</el-button>
         </el-col>
         <el-col :span="4" align="right">
@@ -17,12 +17,16 @@
     <el-card>
       <el-table :data="menuList" row-key="id" default-expand-all
                 :tree-props="{ children: 'children', hasChildren: false }">
-        <el-table-column prop="name" label="菜单名称"/>
-        <el-table-column prop="menuCode" label="编码"/>
+        <el-table-column prop="title" label="名称"/>
+        <el-table-column prop="name" label="编码"/>
         <el-table-column prop="path" label="路径"/>
-        <el-table-column prop="icon" label="图标"/>
+        <el-table-column label="图标">
+          <template slot-scope="scope">
+            <i :class="scope.row.icon" style="font-size: 18px; margin-right: 5px;"></i>
+            {{ scope.row.icon }}
+          </template>
+        </el-table-column>
         <el-table-column prop="orderNum" label="排序"/>
-        <!--        <el-table-column prop="createdAt" label="创建时间"/>-->
         <el-table-column label="操作">
           <template slot-scope="scope">
             <div class="action-buttons">
@@ -50,24 +54,43 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
+        <el-form-item label="编码" prop="name">
           <el-input v-model="menuForm.name"></el-input>
         </el-form-item>
-        <el-form-item label="编码" prop="menuCode">
-          <el-input v-model="menuForm.menuCode"></el-input>
+        <el-form-item label="名称" prop="menuCode">
+          <el-input v-model="menuForm.title"></el-input>
         </el-form-item>
         <el-form-item label="路径" prop="path">
           <el-input v-model="menuForm.path"></el-input>
         </el-form-item>
-
-        <el-form-item label="图表" prop="icon">
-          <el-input v-model="menuForm.icon"></el-input>
+        <el-form-item label="图标" prop="icon">
+          <el-input
+              v-model="menuForm.icon"
+              placeholder="点击右侧按钮选择图标"
+              readonly>
+            <template slot="prefix">
+              <i v-if="menuForm.icon" :class="menuForm.icon" style="font-size:16px;"></i>
+            </template>
+            <template slot="append">
+              <el-button icon="el-icon-search" @click="iconDialogVisible = true"></el-button>
+            </template>
+          </el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer" v-if="!isDetail">
         <el-button @click="clearMenuForm">取 消</el-button>
         <el-button type="primary" @click="submitForm">确 定</el-button>
       </div>
+    </el-dialog>
+
+    <el-dialog title="选择图标" :visible.sync="iconDialogVisible" width="600px">
+      <el-row :gutter="10">
+        <el-col v-for="icon in iconList" :key="icon" :span="4" style="text-align: center; margin-bottom: 10px;">
+          <i :class="icon"
+             style="font-size: 20px; cursor: pointer;"
+             @click="selectIcon(icon)"></i>
+        </el-col>
+      </el-row>
     </el-dialog>
   </div>
 
@@ -85,6 +108,7 @@ export default {
       dialogTitle: '',
       // 是否可见
       dialogFormVisible: false,
+      iconDialogVisible: false,
       menuList: [],
       menuForm: {
         name: '',
@@ -93,9 +117,23 @@ export default {
         path: '',
         icon: ''
       },
+      // 可选图标列表
+      iconList: [
+        'el-icon-edit',
+        'el-icon-share',
+        'el-icon-delete',
+        'el-icon-search',
+        'el-icon-plus',
+        'el-icon-star-on',
+        'el-icon-user',
+        'el-icon-setting',
+        'el-icon-warning',
+        'el-icon-s-tools',
+        // ...可以按需补齐
+      ],
       searchModel: {
         name: '',
-        menuCode: ''
+        title: ''
       },
       // 校验规则
       rules: {
@@ -133,7 +171,7 @@ export default {
       }
     },
     getMenuList() {
-      if (this.searchModel.name.length > 0 || this.searchModel.menuCode.length > 0) {
+      if (this.searchModel.name.length > 0 || this.searchModel.title.length > 0) {
         menuApi.getMenuListTree(this.searchModel).then(res => {
           if (res.code === 20000) {
             this.menuList = res.data
@@ -213,6 +251,11 @@ export default {
 // 最终处理（无论成功或失败都会执行）
     handleFinally() {
       this.loading = false; // 结束加载状态
+    },
+
+    selectIcon(icon) {
+      this.menuForm.icon = icon;
+      this.iconDialogVisible = false;
     },
 
     handleDelete(menu) {
