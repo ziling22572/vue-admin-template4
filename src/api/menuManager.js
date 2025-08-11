@@ -14,7 +14,7 @@ export default {
       method: 'get',
       params: {
         name: searchModel.name,
-        roleCode: searchModel.roleCode
+        title: searchModel.title
       }
     });
   },
