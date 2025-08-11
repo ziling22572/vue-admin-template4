@@ -43,83 +43,83 @@ export const constantRoutes = [
     hidden: true
   },
 
-  {
-    path: '/',
-    component: Layout,
-    redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: {title: '首页', icon: 'dashboard',affix: true} // 锚定 不删 affix: true
-    }]
-  },
+  // {
+  //   path: '/',
+  //   component: Layout,
+  //   redirect: '/dashboard',
+  //   children: [{
+  //     path: 'dashboard',
+  //     name: 'Dashboard',
+  //     component: () => import('@/views/dashboard/index'),
+  //     meta: {title: '首页', icon: 'dashboard',affix: true} // 锚定 不删 affix: true
+  //   }]
+  // },
 
-  {
-    path: '/sys',
-    redirect: '/sys/user',
-    name: 'sysManager',
-    component: Layout,
-    meta: {title: '系统管理', icon: 'el-icon-s-help'},
-    // 二级菜单
-    children: [
-      {
-        path: 'user',
-        name: 'user',
-        component: () => import('@/views/sys/user'),
-        meta: {title: '用户管理', icon: 'form'}
-      },
-      {
-        path: 'role',
-        name: 'role',
-        component: () => import('@/views/sys/role'),
-        meta: {title: '角色管理', icon: 'form'}
-      }
-      ,
-      {
-        path: 'dept',
-        name: 'dept',
-        component: () => import('@/views/sys/dept'),
-        meta: {title: '部门管理', icon: 'form'}
-      }
-      ,
-      {
-        path: 'menu',
-        name: 'menu',
-        component: () => import('@/views/sys/menu'),
-        meta: {title: '菜单管理', icon: 'form'}
-      }
-    ]
-  },
-
-  {
-    path: '/test',
-    redirect: '/test/test1',
-    name: 'testManager',
-    component: Layout,
-    meta: {title: '测试管理', icon: 'el-icon-s-help'},
-    // 二级菜单
-    children: [
-      {
-        path: 'test1',
-        name: 'test1',
-        component: () => import('@/views/test/test1'),
-        meta: {title: '测试1', icon: 'form'}
-      },
-      {
-        path: 'test2',
-        name: 'test2',
-        component: () => import('@/views/test/test2'),
-        meta: {title: '测试2', icon: 'form'}
-      },
-      {
-        path: 'test3',
-        name: 'test3',
-        component: () => import('@/views/test/test3'),
-        meta: {title: '测试3', icon: 'form'}
-      }
-    ]
-  },
+  // {
+  //   path: '/sys',
+  //   redirect: '/sys/user',
+  //   name: 'sysManager',
+  //   component: Layout,
+  //   meta: {title: '系统管理', icon: 'el-icon-s-help'},
+  //   // 二级菜单
+  //   children: [
+  //     {
+  //       path: 'user',
+  //       name: 'user',
+  //       component: () => import('@/views/sys/user'),
+  //       meta: {title: '用户管理', icon: 'form'}
+  //     },
+  //     {
+  //       path: 'role',
+  //       name: 'role',
+  //       component: () => import('@/views/sys/role'),
+  //       meta: {title: '角色管理', icon: 'form'}
+  //     }
+  //     ,
+  //     {
+  //       path: 'dept',
+  //       name: 'dept',
+  //       component: () => import('@/views/sys/dept'),
+  //       meta: {title: '部门管理', icon: 'form'}
+  //     }
+  //     ,
+  //     {
+  //       path: 'menu',
+  //       name: 'menu',
+  //       component: () => import('@/views/sys/menu'),
+  //       meta: {title: '菜单管理', icon: 'form'}
+  //     }
+  //   ]
+  // },
+  //
+  // {
+  //   path: '/test',
+  //   redirect: '/test/test1',
+  //   name: 'testManager',
+  //   component: Layout,
+  //   meta: {title: '测试管理', icon: 'el-icon-s-help'},
+  //   // 二级菜单
+  //   children: [
+  //     {
+  //       path: 'test1',
+  //       name: 'test1',
+  //       component: () => import('@/views/test/test1'),
+  //       meta: {title: '测试1', icon: 'form'}
+  //     },
+  //     {
+  //       path: 'test2',
+  //       name: 'test2',
+  //       component: () => import('@/views/test/test2'),
+  //       meta: {title: '测试2', icon: 'form'}
+  //     },
+  //     {
+  //       path: 'test3',
+  //       name: 'test3',
+  //       component: () => import('@/views/test/test3'),
+  //       meta: {title: '测试3', icon: 'form'}
+  //     }
+  //   ]
+  // },
   {
     path: '/profile',
     name: 'UserProfile',
@@ -127,7 +127,7 @@ export const constantRoutes = [
     meta: { title: '个人信息', icon: 'user' },
     hidden: true
   },
-  {path: '*', redirect: '/404', hidden: true}
+  // {path: '*', redirect: '/404', hidden: true}
 ]
 
 const createRouter = () => new Router({

@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    部门管理
+   部门管理
   </div>
 </template>
 
