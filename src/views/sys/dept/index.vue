@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <router-view></router-view>  <!-- 这里放子路由 -->
+    <router-view></router-view>  <!-- todo 这里放子路由 -->
   </div>
   </template>
 
