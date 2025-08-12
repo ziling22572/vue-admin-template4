@@ -7,8 +7,31 @@ import { getToken } from '@/utils/auth' // get token from cookie
 import getPageTitle from '@/utils/get-page-title'
 import layout from "@/layout";
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
+// 在 permission.js 顶部添加
 
 const whiteList = ['/login'] // no redirect whitelist
+
+// 注意这里改成相对路径
+const viewModules = require.context('./views', true, /\.vue$/);
+
+function loadView(viewPath) {
+  const directFile = `./${viewPath}.vue`;
+  if (viewModules.keys().includes(directFile)) {
+    return viewModules(directFile).default;
+  }
+
+  const indexFile = `./${viewPath}/index.vue`;
+  if (viewModules.keys().includes(indexFile)) {
+    return viewModules(indexFile).default;
+  }
+
+  console.error(`❌ 未找到组件文件: ${directFile} 或 ${indexFile}`);
+  return null;
+}
+
+
+
+
 
 function myFilterAsyncRoutes(menus, isChild = false) {
   return menus.map(menu => {
@@ -16,12 +39,7 @@ function myFilterAsyncRoutes(menus, isChild = false) {
     if (menu.component === 'Layout') {
       menu.component = layout;
     } else {
-      try {
-        menu.component = require(`@/views/${menu.component}.vue`).default;
-      } catch (e) {
-        console.error(`❌ 组件加载失败: ${menu.component}`, e);
-        menu.component = null;
-      }
+      menu.component = loadView(menu.component);
     }
 
     // 2. meta 转换
@@ -32,10 +50,8 @@ function myFilterAsyncRoutes(menus, isChild = false) {
 
     // 3. path 规范化
     if (!isChild && menu.path && !menu.path.startsWith('/')) {
-      // 一级菜单加上 /
       menu.path = `/${menu.path}`;
     } else if (isChild && menu.path && menu.path.startsWith('/')) {
-      // 子菜单去掉 /
       menu.path = menu.path.replace(/^\/+/, '');
     }
 
@@ -47,6 +63,8 @@ function myFilterAsyncRoutes(menus, isChild = false) {
     return menu;
   });
 }
+
+
 
 router.beforeEach(async(to, from, next) => {
   NProgress.start();

@@ -1,8 +1,9 @@
 <template>
   <div class="app-container">
-   部门管理
+    <router-view></router-view>  <!-- 这里放子路由 -->
   </div>
-</template>
+  </template>
+
 
 <script>
 

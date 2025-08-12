@@ -63,6 +63,12 @@
         <el-form-item label="路径" prop="path">
           <el-input v-model="menuForm.path"></el-input>
         </el-form-item>
+        <el-form-item label="路由" prop="path">
+          <el-input v-model="menuForm.component"></el-input>
+        </el-form-item>
+        <el-form-item label="默认路由" prop="path">
+          <el-input v-model="menuForm.redirect"></el-input>
+        </el-form-item>
         <el-form-item label="图标" prop="icon">
           <el-input
               v-model="menuForm.icon"
@@ -112,10 +118,12 @@ export default {
       menuList: [],
       menuForm: {
         name: '',
-        menuCode: '',
+        title: '',
         parentId: 0,
         path: '',
-        icon: ''
+        icon: '',
+        component: '',
+        redirect: ''
       },
       // 可选图标列表
       iconList: [
@@ -154,7 +162,7 @@ export default {
         list.forEach(item => {
           result.push({
             id: item.id,
-            indentedName: `${'—'.repeat(level * 2)} ${item.name}`.trim()
+            indentedName: `${'—'.repeat(level * 2)} ${item.title}`.trim()
           })
           if (item.children && item.children.length) flatten(item.children, level + 1)
         })
