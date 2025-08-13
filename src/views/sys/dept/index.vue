@@ -3,11 +3,7 @@
     <router-view></router-view>  <!-- todo 这里放子路由 -->
   </div>
   </template>
-
-
 <script>
-
-
 export default {
   data() {
     return {}

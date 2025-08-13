@@ -12,6 +12,7 @@ export default {
         username: searchModel.username,
         phone: searchModel.phone,
         status: searchModel.status,
+        deptId: searchModel.deptId
       }
     });
   },
